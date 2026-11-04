@@ -154,7 +154,7 @@
 <aside class="calc" id="calc" hidden aria-labelledby="calcTitle"><div class="calc-top"><h2 id="calcTitle">Calculator</h2><button class="btn-quiet" type="button" id="calcClose">Close</button></div>
 <label class="sr-only" for="calcIn">Expression</label><input id="calcIn" autocomplete="off" spellcheck="false" placeholder="${esc(C.calcPlaceholder || '330000/(1.08)^5')}">
 <p class="calc-out" id="calcOut" aria-live="polite"></p><p class="calc-err" id="calcErr"></p><div class="keys" id="keys"></div>
-<p class="small" style="margin:.5rem 0 0">Type or tap. <b>^</b> raises to a power, so 1/(1.08)^5 is the year 5 discount factor at 8%. Prefer Desmos? <a href="https://www.desmos.com/scientific" target="_blank" rel="noopener">Open the Desmos scientific calculator</a> in a new tab.</p>
+<p class="small" style="margin:.5rem 0 0">${C.calcHint || 'Type or tap. <b>^</b> raises to a power, so 1/(1.08)^5 is the year 5 discount factor at 8%.'} Prefer Desmos? <a href="https://www.desmos.com/scientific" target="_blank" rel="noopener">Open the Desmos scientific calculator</a> in a new tab.</p>
 <div class="actions" style="margin-top:.4rem"><button class="btn small secondary" type="button" id="calcCopy">Copy the result</button></div></aside>
 <footer><p>${esc(ST.kicker)}. Your progress is saved in this browser.</p></footer><div class="sr-only" aria-live="polite" id="announce"></div>`);
   const view = $('#view');
@@ -263,10 +263,11 @@
   }
 
   // one-question check
+  const optOrder = (q) => { const hs = (s) => { let x = 2166136261; for (let i = 0; i < s.length; i++) { x ^= s.charCodeAt(i); x = Math.imul(x, 16777619) >>> 0; } return x; }; return q.options.map((_, j) => j).sort((a, b) => hs(q.q + '|' + a) - hs(q.q + '|' + b)); };
   function showCheck(s) {
     const L = S.log[s.id], q = C.quiz[s.quiz]; const cur = L.choice != null ? Number(L.choice) : null;
     view.innerHTML = `${kicker(s.id)}<article class="memo" aria-labelledby="t">${memoHead(L.done)}<h2 id="t">${esc(q.title || 'Quick win')}</h2>
-      <form id="qf" novalidate><fieldset><legend>${esc(q.q)}</legend><div class="choices stack">${q.options.map((o, j) => `<label class="choice"><input type="radio" name="q" value="${j}" ${cur === j ? 'checked' : ''}><span>${esc(o)}</span></label>`).join('')}</div></fieldset>
+      <form id="qf" novalidate><fieldset><legend>${esc(q.q)}</legend><div class="choices stack">${optOrder(q).map((j) => `<label class="choice"><input type="radio" name="q" value="${j}" ${cur === j ? 'checked' : ''}><span>${esc(q.options[j])}</span></label>`).join('')}</div></fieldset>
       <div class="actions"><button class="btn" type="submit">Check</button><span class="attempts" id="att">${L.attempts ? 'Checks so far: ' + L.attempts : ''}</span></div>
       <div class="fb" id="fb" aria-live="polite"></div><div class="actions" id="nextRow" ${L.done ? '' : 'hidden'}><button class="btn" type="button" id="nextBtn">${nextLabel(s.id)}</button></div></form></article>`;
     $('#qf').addEventListener('submit', (e) => {

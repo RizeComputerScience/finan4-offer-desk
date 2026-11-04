@@ -28,6 +28,14 @@
         'Waiting makes money worth less today, not more. Plan B’s payments are each discounted one extra year.',
         'They have the same payments, but not the same timing. Earlier money is worth more today.',
         'At any positive rate, earlier payments are worth more. The size of the rate changes how much more, not which plan wins.'] },
+    { title: 'Exam-style question',
+      q: 'A job offer includes an $8,000 bonus paid three years from now. At 5% a year, what is the bonus worth today?',
+      options: ['$6,911', '$6,957', '$7,619', '$9,261'],
+      answer: 0,
+      why: ['Right. $8,000 ÷ 1.05³ = $8,000 ÷ 1.1576 = $6,911. Questions on the exams look like this one.',
+        '$6,957 divides by 1.15, which adds up three years of 5% without compounding. Divide by 1.05 three times instead: 1.05³ = 1.1576.',
+        '$7,619 discounts only one year. The bonus arrives at the end of year 3, so divide by 1.05³.',
+        '$9,261 grows the bonus forward. It already arrives in the future, so bring it back to today by dividing by 1.05³.'] },
   ];
 
   const STEPS = [
@@ -40,6 +48,8 @@
     { id: 'q3', label: 'Check 3', kind: 'check', quiz: 2 },
     { id: 't4', label: 'Loan payment', kind: 'task' },
     { id: 't5', label: 'Scholarship', kind: 'task' },
+    { id: 't6', label: 'Growth rate', kind: 'task' },
+    { id: 'q4', label: 'Exam-style question', kind: 'check', quiz: 3 },
     { id: 'note', label: 'Your note', kind: 'note' },
   ];
 
@@ -58,6 +68,9 @@
       T.push({ id: 't4', r, n, L, af: h.annuityFactor(r, n), answer: L / h.annuityFactor(r, n) }); }
     { const r = h.pick(rng, [0.03, 0.04, 0.05]), S = h.between(rng, 2000, 6000, 500);
       T.push({ id: 't5', r, S, answer: S / r }); }
+    { const g = h.pick(rng, [0.03, 0.035, 0.04, 0.045, 0.05]), n = h.between(rng, 3, 6, 1), S0 = h.between(rng, 52000, 68000, 1000);
+      const S1 = h.round(S0 * Math.pow(1 + g, n), 500);
+      T.push({ id: 't6', n, S0, S1, answer: Math.pow(S1 / S0, 1 / n) - 1 }); }
     return T;
   }
 
@@ -95,6 +108,12 @@
       body: `<p>Your college will name a scholarship after any donor who funds a gift of <b>${m(t.S)}</b> a year, paid every year forever. The college invests the gift and expects to earn <b>${p(t.r)}</b> a year.</p>
         <p>A payment that goes on forever is a <b>perpetuity</b>, and its value today is <b>payment ÷ r</b>. How much would you need to give?</p>`,
       value: { label: 'Gift needed today' } };
+    if (t.id === 't6') return { title: 'Growth: what raise does that promise?', place: 'Racine Trucking’s hiring manager talks about where the job leads.',
+      body: `<p>Racine’s offer starts at <b>${m(t.S0)}</b> a year. The hiring manager says analysts who stay usually earn <b>${m(t.S1)}</b> after <b>${t.n} years</b>.</p>
+        <p>What steady yearly raise turns ${m(t.S0)} into ${m(t.S1)} in ${t.n} years? This is the <b>compound annual growth rate</b> (CAGR):</p>
+        <div class="formula"><span>CAGR = (end ÷ start)<sup>1/n</sup> − 1</span></div>
+        <p>(In the calculator: <code>(${t.S1}/${t.S0})^(1/${t.n})-1</code>.)</p>`,
+      value: { label: 'Yearly growth rate', help: 'Type it as a percent, like 4.2%, or as a decimal, like 0.042.' } };
   }
 
   function judgeTask(t, e, h) {
@@ -137,6 +156,12 @@
       [t.S / (1 + t.r), 'oneyear', 'That is the value of one payment. A perpetuity pays forever: payment ÷ r.'],
       [t.S / t.r * (1 + t.r), 'due', 'That would be right if the first payment came today. The first scholarship is paid a year from now, so use payment ÷ r.']],
       { otherMsg: `Value today = ${m(t.S)} ÷ ${t.r}.` });
+    if (t.id === 't6') { let g = v; if (isFinite(g) && Math.abs(g) >= 1 && !/%/.test(String(e.value))) g = g / 100;
+      return h.judgeNumber(g, t.answer, [
+        [(t.S1 / t.S0 - 1) / t.n, 'simple', `That splits the total raise evenly across ${t.n} years. Each year’s raise also applies to the earlier raises, so raise the growth factor to the power 1/${t.n}: (end ÷ start)^(1/${t.n}) − 1.`],
+        [t.S1 / t.S0 - 1, 'total', `That is the total growth over all ${t.n} years. The question asks for the yearly rate: (end ÷ start)^(1/${t.n}) − 1.`],
+        [Math.pow(t.S1 / t.S0, 1 / t.n), 'noone', 'Almost there. Subtract 1 to turn the growth factor into a rate.']],
+        { tol: 0.0006, closeMsg: 'Close. Keep more decimal places and round only at the end.', otherMsg: `CAGR = (${m(t.S1)} ÷ ${m(t.S0)})^(1/${t.n}) − 1.` }); }
   }
 
   function helpText(t, lvl, h) {
@@ -146,6 +171,7 @@
       return 'Every row:<br>' + Array.from({ length: t.n }, (_, i) => `Year ${i + 1}: ${m(t.C)} × ${f4(h.df(t.r, i + 1))} = ${m(t.C * h.df(t.r, i + 1))}`).join('<br>') + `<br>Compare the total with ${m(t.D)}.`; }
     if (t.id === 't4') return lvl === 1 ? `First find the annuity factor: (1 − (1 + ${t.r})^−${t.n}) ÷ ${t.r} = ${f4(t.af)}.` : `Payment = ${m(t.L)} ÷ ${f4(t.af)}. In the calculator: <code>${t.L}/((1-(1+${t.r})^-${t.n})/${t.r})</code>.`;
     if (t.id === 't5') return lvl === 1 ? 'A perpetuity’s value today is the yearly payment divided by the rate.' : `${m(t.S)} ÷ ${t.r}. In the calculator: <code>${t.S}/${t.r}</code>.`;
+    if (t.id === 't6') return lvl === 1 ? `First divide: ${m(t.S1)} ÷ ${m(t.S0)} = ${(t.S1 / t.S0).toFixed(4)}. That is the growth over all ${t.n} years. Then raise it to the power 1/${t.n} to get one year’s growth.` : `(${(t.S1 / t.S0).toFixed(4)})^(1/${t.n}) − 1 = ${p(t.answer)}. In the calculator: <code>(${t.S1}/${t.S0})^(1/${t.n})-1</code>.`;
   }
   function praise(t) {
     if (t.id === 't1') return `Your ${m(t.P)} grows to ${m(t.answer)}. ${m(t.answer - t.P - t.P * t.r * t.n)} of that is interest earned on interest.`;
@@ -153,12 +179,15 @@
     if (t.id === 't3') return `The stipend is worth ${m(t.answer)} today, against ${m(t.D)} in cash. ${t.decision === 'racine' ? 'The stipend wins.' : 'The cash wins, even though the stipend adds up to more.'}`;
     if (t.id === 't4') return `You pay ${m(t.answer)} a year, ${m(t.answer * t.n)} in total. ${m(t.answer * t.n - t.L)} of that is interest.`;
     if (t.id === 't5') return `A gift of ${m(t.answer)}, invested at ${p(t.r)}, pays ${m(t.S)} a year forever without ever shrinking.`;
+    if (t.id === 't6') return `That is a raise of about ${p(t.answer)} a year. By the Rule of 72, pay growing at that rate doubles in about 72 ÷ ${(t.answer * 100).toFixed(1)} = ${(72 / (t.answer * 100)).toFixed(0)} years.`;
   }
   function selfAnswer(t) {
     if (t.id === 't3') { const rows = []; for (let y = 1; y <= t.n; y++) rows[y] = String(Math.round(t.C * Math.pow(1 + t.r, -y))); return { rows, choice: t.decision }; }
+    if (t.id === 't6') return { value: (t.answer * 100).toFixed(2) + '%' };
     return { value: String(Math.round(t.answer)), choice: t.decision || null };
   }
   function selfWrong(t) {
+    if (t.id === 't6') return { value: (((t.S1 / t.S0 - 1) / t.n) * 100).toFixed(2) + '%' };
     if (t.id === 't3') { const rows = []; for (let y = 1; y <= t.n; y++) rows[y] = String(t.C); return { rows, choice: t.decision }; }
     return { value: String(Math.round(t.answer * 1.2)), choice: t.decision || null };
   }
@@ -185,14 +214,14 @@
   };
 
   root.DESK = {
-    app: 'finan4-u4-offer-desk', version: 1, seedVersion: 1, salt: 'rize-finan4-u4-offer:9d27a1', points: 20,
+    app: 'finan4-u4-offer-desk', version: 2, seedVersion: 1, salt: 'rize-finan4-u4-offer:9d27a1', points: 20,
     storageKey: 'rize-finan4-u4-offer-v1', filePrefix: 'OfferDesk',
     verifyUrl: 'https://rizecomputerscience.github.io/finan4-offer-desk/verify.html',
     story: { title: 'The Offer Desk', kicker: 'Corporate Finance, Unit 4', company: 'Career Center', team: 'Money Coaching',
       from: 'Dagny Tomasek', fromTitle: 'financial coach, Career Center',
       dek: 'It is spring of your senior year. You have two job offers, a student loan coming due and a savings goal. Dagny Tomasek, a financial coach at your career center, helps you turn each choice into numbers you can compare fairly.',
       whatBox: '<b>Why timing matters.</b> A dollar you have today can be saved and earn interest, so it is worth more than a dollar you get later. Every choice here comes down to moving money forward or backward in time so that two amounts can be compared on the same day.',
-      stepsLine: 'There are ten steps: a worked example, five money decisions with three one-question checks between them, and a short note to Dagny.' },
+      stepsLine: 'There are twelve steps: a worked example, six money decisions with three one-question checks between them, one exam-style question, and a short note to Dagny.' },
     steps: STEPS, quiz: QUIZ, walk: WALK, buildTasks, taskView, judgeTask, helpText, praise, selfAnswer, selfWrong,
     note: { title: 'Your decision', label: 'Your note to Dagny', minWords: 30, receiptHeading: 'Note to the financial coach',
       prompt: 'Dagny asks you to put your thinking in writing before you sign anything. Which offer’s money is worth more to you so far, counting the bonus and the stipend in today’s dollars, and what is one thing besides money you would still weigh?' },

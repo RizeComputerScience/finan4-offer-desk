@@ -65,6 +65,7 @@ table.cf th:first-child,table.cf td:first-child{text-align:left}
 table.cf td{text-align:right;padding:.3rem .6rem;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap}
 table.cf tfoot td[colspan]{white-space:normal;text-align:left}
 table.cf td.neg{color:var(--bad)}
+table.cf td.lbl{font:16px var(--serif);white-space:normal;text-align:left}
 table.cf td .ex{display:block;font-size:12.5px;color:var(--muted)}
 table.cf input{font:15px var(--mono);width:9.5rem;text-align:right;padding:.2rem .35rem;border:1.5px solid var(--line-strong);border-radius:4px;background:var(--surface);color:var(--ink)}
 table.cf input.good{border-color:var(--ok);background:var(--ok-tint)}

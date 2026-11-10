@@ -130,7 +130,7 @@
       example: `<p>Borrow $10,000 at 10% a year for 5 years.</p>
         <p>Annuity factor = (1 − 1.10<sup>−5</sup>) ÷ 0.10 = 3.7908.</p>
         <p>Payment = $10,000 ÷ 3.7908 = $2,637.97 a year.</p>`,
-      parts: [{ html: `<p class="small">In the calculator, your annuity factor is <code>(1-(1+${t.r})^-${t.n})/${t.r}</code>.</p>`, field: 'value' }],
+      parts: [{ html: `<p class="small">In Desmos, your annuity factor takes two lines: <code>1-${+(1 + t.r).toFixed(4)}^-${t.n}</code>, then <code>ans/${t.r}</code>.</p>`, field: 'value' }],
       value: { label: 'What is your yearly payment?', help: DOLLAR } };
     if (t.id === 't5') return { title: 'Someday: a scholarship in your name', place: 'Ten years from now, you want to give back.',
       body: `<p>Your college names a scholarship after any donor whose gift pays <b>${m(t.S)}</b> a year, every year forever. The college invests the gift and expects to earn <b>${p(t.r)}</b> a year.</p>
@@ -148,7 +148,7 @@
         <p>End ÷ start = $50,000 ÷ $40,000 = 1.25.</p>
         <p>1.25<sup>1/3</sup> = 1.0772.</p>
         <p>CAGR = 1.0772 − 1 = 0.0772, or 7.72%.</p>`,
-      parts: [{ html: `<p class="small">In the calculator: <code>(${t.S1}/${t.S0})^(1/${t.n})-1</code>.</p>`, field: 'value' }],
+      parts: [{ html: `<p class="small">In Desmos, three lines: <code>${t.S1}/${t.S0}</code>, then <code>ans^(1/${t.n})</code>, then <code>ans-1</code>.</p>`, field: 'value' }],
       value: { label: 'What steady yearly raise is that?', placeholder: '0.00%', help: 'Type a percent, like 4.2%.' } };
   }
 
@@ -204,18 +204,18 @@
         [(t.S1 / t.S0 - 1) / t.n, 'simple', `That splits the total raise evenly across ${t.n} years. Each year’s raise also applies to the earlier raises, so raise the growth factor to the power 1/${t.n}: (end ÷ start)^(1/${t.n}) − 1.`],
         [t.S1 / t.S0 - 1, 'total', `That is the total growth over all ${t.n} years. The question asks for the yearly rate: (end ÷ start)^(1/${t.n}) − 1.`],
         [Math.pow(t.S1 / t.S0, 1 / t.n), 'noone', 'Almost there. Subtract 1 to turn the growth factor into a rate.'],
-        [t.S1 / t.S0 / t.n - 1, 'parens', `That divides by ${t.n} instead of taking the power 1/${t.n}. In the calculator, put the power in parentheses: ^(1/${t.n}).`]],
+        [t.S1 / t.S0 / t.n - 1, 'parens', `That divides by ${t.n} instead of taking the power 1/${t.n}. In Desmos, after dividing, type <code>ans^(1/${t.n})</code> on its own line.`]],
         { tol: 0.0006, closeMsg: 'Close. Keep more decimal places and round only at the end.', otherMsg: `CAGR = (${m(t.S1)} ÷ ${m(t.S0)})^(1/${t.n}) − 1.` }); }
   }
 
   function helpText(t, lvl, h) {
-    if (t.id === 't1') return lvl === 1 ? `After one year: ${m(t.P)} × (1 + ${t.r}) = ${m(t.P * (1 + t.r), 1)}. Each year multiplies by (1 + ${t.r}) again.` : `${m(t.P)} × (1 + ${t.r})^${t.n}. In the calculator: <code>${t.P}*(1+${t.r})^${t.n}</code>.`;
+    if (t.id === 't1') return lvl === 1 ? `After one year: ${m(t.P)} × (1 + ${t.r}) = ${m(t.P * (1 + t.r), 1)}. Each year multiplies by (1 + ${t.r}) again.` : `${m(t.P)} × (1 + ${t.r})^${t.n}. In Desmos: <code>${t.P}*(1+${t.r})^${t.n}</code>.`;
     if (t.id === 't2') return lvl === 1 ? `Racine’s bonus arrives in 2 years, so divide it by (1 + ${t.r}) twice.` : `${m(t.B)} ÷ (1 + ${t.r})² = ${m(t.answer)}. Compare that with Ferreira’s ${m(t.A)}, which is already in today’s dollars.`;
     if (t.id === 't3') { if (lvl === 1) return `Year 1: ${m(t.C)} × ${f4(h.df(t.r, 1))} = ${m(t.C * h.df(t.r, 1))}. Do the same for each year, then compare the total with ${m(t.D)}.`;
       return 'Every row:<br>' + Array.from({ length: t.n }, (_, i) => `Year ${i + 1}: ${m(t.C)} × ${f4(h.df(t.r, i + 1))} = ${m(t.C * h.df(t.r, i + 1))}`).join('<br>') + `<br>Compare the total with ${m(t.D)}.`; }
-    if (t.id === 't4') return lvl === 1 ? `First find the annuity factor: (1 − (1 + ${t.r})^−${t.n}) ÷ ${t.r} = ${f4(t.af)}.` : `Payment = ${m(t.L)} ÷ ${f4(t.af)}. In the calculator: <code>${t.L}/((1-(1+${t.r})^-${t.n})/${t.r})</code>.`;
-    if (t.id === 't5') return lvl === 1 ? 'A perpetuity’s value today is the yearly payment divided by the rate.' : `${m(t.S)} ÷ ${t.r}. In the calculator: <code>${t.S}/${t.r}</code>.`;
-    if (t.id === 't6') return lvl === 1 ? `First divide: ${m(t.S1)} ÷ ${m(t.S0)} = ${(t.S1 / t.S0).toFixed(4)}. That is the growth over all ${t.n} years. Then raise it to the power 1/${t.n} to get one year’s growth.` : `(${(t.S1 / t.S0).toFixed(4)})^(1/${t.n}) − 1 = ${p(t.answer)}. In the calculator: <code>(${t.S1}/${t.S0})^(1/${t.n})-1</code>.`;
+    if (t.id === 't4') return lvl === 1 ? `First find the annuity factor: (1 − (1 + ${t.r})^−${t.n}) ÷ ${t.r} = ${f4(t.af)}.` : `Payment = ${m(t.L)} ÷ ${f4(t.af)}. In Desmos, three lines: <code>1-${+(1 + t.r).toFixed(4)}^-${t.n}</code>, then <code>ans/${t.r}</code>, then <code>${t.L}/ans</code>.`;
+    if (t.id === 't5') return lvl === 1 ? 'A perpetuity’s value today is the yearly payment divided by the rate.' : `${m(t.S)} ÷ ${t.r}. In Desmos: <code>${t.S}/${t.r}</code>.`;
+    if (t.id === 't6') return lvl === 1 ? `First divide: ${m(t.S1)} ÷ ${m(t.S0)} = ${(t.S1 / t.S0).toFixed(4)}. That is the growth over all ${t.n} years. Then raise it to the power 1/${t.n} to get one year’s growth.` : `(${(t.S1 / t.S0).toFixed(4)})^(1/${t.n}) − 1 = ${p(t.answer)}. In Desmos, three lines: <code>${t.S1}/${t.S0}</code>, then <code>ans^(1/${t.n})</code>, then <code>ans-1</code>.`;
   }
   function praise(t) {
     if (t.id === 't1') return `Your ${m(t.P)} grows to ${m(t.answer)}. ${m(t.answer - t.P - t.P * t.r * t.n)} of that is interest earned on interest.`;

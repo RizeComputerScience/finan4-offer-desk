@@ -12,7 +12,7 @@
   'use strict';
   const RATES = [0.04, 0.05, 0.06, 0.07];
   const QUIZ = [
-    { title: 'Quick check: interest on interest',
+    { title: 'Quick check: compounding',
       q: 'You put $100 in an account that pays 10% a year. Why do you have $121 after two years, not $120?',
       options: ['In year 2 you also earn interest on year 1’s interest', 'The bank adds a $1 bonus', 'The rate rises to 11% in year 2', 'It is a rounding difference'],
       answer: 0,
@@ -21,7 +21,7 @@
         'The rate stays 10%. It applies to a bigger balance: $110 instead of $100.',
         'It is not rounding. The extra $1 is interest on year 1’s $10 of interest.'] },
     { title: 'Exam-style question',
-      q: 'A job offer includes an $8,000 bonus paid three years from now. At 5% a year, what is the bonus worth today?',
+      q: 'A job offer includes an $8,000 bonus paid three years from now. At a 5% discount rate, what is the bonus worth today (its present value)?',
       options: ['$6,911', '$6,957', '$7,619', '$9,261'],
       answer: 0,
       why: ['Right. $8,000 ÷ 1.05³ = $8,000 ÷ 1.1576 = $6,911. Exam questions look like this one.',
@@ -31,13 +31,13 @@
   ];
 
   const STEPS = [
-    { id: 'fv', label: 'Grow it', kind: 'task' },
+    { id: 'fv', label: 'Future value', kind: 'task' },
     { id: 'q1', label: 'Quick check', kind: 'check', quiz: 0 },
-    { id: 'pv1', label: 'Bring it back', kind: 'task' },
+    { id: 'pv1', label: 'Present value', kind: 'task' },
     { id: 'pv2', label: 'Two bonuses', kind: 'task' },
     { id: 'rows1', label: 'Three payments', kind: 'task' },
     { id: 'rows2', label: 'Stipend or cash', kind: 'task' },
-    { id: 'af1', label: 'The shortcut', kind: 'task' },
+    { id: 'af1', label: 'Annuity factor', kind: 'task' },
     { id: 'loan', label: 'Loan payment', kind: 'task' },
     { id: 'q2', label: 'Exam-style question', kind: 'check', quiz: 1 },
     { id: 'note', label: 'Your note', kind: 'note' },
@@ -128,21 +128,21 @@
 
   const PROBLEM = {
     fv: (t) => ({ title: 'Grow it', place: 'Dagny starts with the savings you already have.',
-      body: `<p>You have <b>${m(t.P)}</b> saved at <b>${p(t.r)}</b> a year. How much will you have after <b>2 years</b>? The first line is done for you.</p>` }),
+      body: `<p>You have <b>${m(t.P)}</b> saved at <b>${p(t.r)}</b> a year. How much will you have after <b>2 years</b>? That amount is the future value. The first line is done for you.</p>` }),
     pv1: (t) => ({ title: 'Bring it back to today', place: 'One employer promises a bonus later.',
-      body: `<p>Racine Trucking promises <b>${m(t.B)}</b> in <b>2 years</b>. At <b>${p(t.r)}</b> a year, what is it worth today? The discount factor is done for you.</p>` }),
+      body: `<p>Racine Trucking promises <b>${m(t.B)}</b> in <b>2 years</b>. At a <b>${p(t.r)}</b> discount rate, what is its present value? The discount factor is done for you.</p>` }),
     pv2: (t) => ({ title: 'Two bonuses: now or later?', place: 'Now compare the two offers’ bonuses.',
-      body: `<p>Ferreira Outfitters pays <b>${m(t.A)}</b> on your first day. Racine Trucking pays <b>${m(t.B)}</b> at the end of <b>year 3</b>. At <b>${p(t.r)}</b> a year, which is worth more today?</p>`,
+      body: `<p>Ferreira Outfitters pays <b>${m(t.A)}</b> on your first day. Racine Trucking pays <b>${m(t.B)}</b> at the end of <b>year 3</b>. At a <b>${p(t.r)}</b> discount rate, which is worth more today?</p>`,
       choice: { legend: 'Which bonus is worth more today?', options: [['ferreira', 'Ferreira’s, now'], ['racine', 'Racine’s, in year 3']] } }),
     rows1: (t) => ({ title: 'Three payments', place: 'Racine adds a moving allowance, paid in three parts.',
-      body: `<p>Racine pays <b>${m(t.C)}</b> at the end of each of the next <b>3 years</b>. At <b>${p(t.r)}</b> a year, what are the three payments worth today? Years 1 and 2 are done for you.</p>` }),
+      body: `<p>Racine pays <b>${m(t.C)}</b> at the end of each of the next <b>3 years</b>. At a <b>${p(t.r)}</b> discount rate, what is their total present value? Years 1 and 2 are done for you.</p>` }),
     rows2: (t) => ({ title: 'Stipend or cash?', place: 'Both employers want to help with housing.',
-      body: `<p>Racine pays a housing stipend of <b>${m(t.C)}</b> at the end of each of <b>4 years</b>. Ferreira pays <b>${m(t.D)}</b> in cash on your first day. At <b>${p(t.r)}</b> a year, which is worth more today?</p>`,
+      body: `<p>Racine pays a housing stipend of <b>${m(t.C)}</b> at the end of each of <b>4 years</b>. Ferreira pays <b>${m(t.D)}</b> in cash on your first day. At a <b>${p(t.r)}</b> discount rate, which is worth more today?</p>`,
       choice: { legend: 'Which is worth more today?', options: [['racine', 'Racine’s stipend'], ['ferreira', 'Ferreira’s cash']] } }),
-    af1: (t) => ({ title: 'The shortcut', place: 'Dagny shows a faster way to check your stipend table.',
-      body: `<p>Find the same stipend's value today, <b>${m(t.C)}</b> a year for <b>4 years</b> at <b>${p(t.r)}</b>, with the annuity factor. It should match your table's total.</p>` }),
+    af1: (t) => ({ title: 'The annuity factor', place: 'Dagny shows a faster way to check your stipend table.',
+      body: `<p>The stipend, <b>${m(t.C)}</b> a year for <b>4 years</b>, is an annuity. Find its value today at <b>${p(t.r)}</b> with the annuity factor. It should match your table's total.</p>` }),
     loan: (t) => ({ title: 'Your student loan payment', place: 'Your student loan comes due after graduation.',
-      body: `<p>You owe <b>${m(t.L)}</b> at <b>${p(t.r)}</b> a year, repaid in <b>${t.n} equal yearly payments</b>. What is each payment?</p>` }),
+      body: `<p>You owe <b>${m(t.L)}</b> at <b>${p(t.r)}</b> a year. It is an amortizing loan: <b>${t.n} equal yearly payments</b> cover the interest and pay the balance down to zero. What is each payment?</p>` }),
   };
 
   function taskView(t, L, h) {
@@ -236,6 +236,6 @@
       stepsLine: 'Ten short steps. Each shows a worked example in the same table you fill in, then you do the same calculation with your own numbers.' },
     steps: STEPS, quiz: QUIZ, walk: null, buildTasks, taskView, judgeTask, helpText, praise, selfAnswer, selfWrong,
     note: { title: 'Your decision', label: 'Your note to Dagny', minWords: 30, receiptHeading: 'Note to the financial coach',
-      prompt: 'Which offer’s money is worth more to you so far, counting the bonus and the stipend in today’s dollars? Name one thing besides money you would still weigh.' },
+      prompt: 'Which offer’s money is worth more to you so far, counting the bonus and the stipend at their present values? Name one thing besides money you would still weigh.' },
   };
 })(typeof window !== 'undefined' ? window : globalThis);
